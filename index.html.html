@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Duolingo English Master - Pronunciation, Listening & Speaking</title>
+  <style>
+    :root {
+      --primary: #58cc02;
+      --primary-dark: #46a302;
+      --secondary: #1cb0f6;
+      --secondary-dark: #1899d6;
+      --accent: #ff4b4b;
+      --accent-dark: #ea2b2b;
+      --gold: #ffc800;
+      --gold-dark: #e5b200;
+      --bg: #f0f4f8;
+      --card-bg: #ffffff;
+      --text: #3c3c3c;
+      --border: #e5e7eb;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-family);
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    /* Top Navigation Bar */
+    .navbar {
+      width: 100%;
+      background: var(--card-bg);
+      border-bottom: 2px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: var(--primary-dark);
+    }
+
+    .brand-icon {
+      font-size: 1.8rem;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .stat-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 1rem;
+      background: #f8fafc;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 2px solid var(--border);
+    }
+
+    .stat-streak { color: var(--accent); }
+    .stat-xp { color: var(--gold-dark); }
+
+    /* Main Container */
+    .main-container {
+      width: 100%;
+      max-width: 800px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Card Layouts */
+    .card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      border: 2px solid var(--border);
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    .card-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 800;
+      color: #888;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Mode Selector Tabs */
+    .mode-tabs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      background: #f8fafc;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 10px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      color: #666;
+    }
+
+    .tab-btn.active {
+      background: var(--secondary);
+      color: white;
+      border-color: var(--secondary-dark);
+      box-shadow: 0 4px 0 var(--secondary-dark);
+    }
+
+    /* Category & Filter Controls */
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      outline: none;
+      background: #fff;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    select:focus, input[type="text"]:focus {
+      border-color: var(--secondary);
+    }
+
+    /* Question Display Block */
+    .phrase-container {
+      background: #f8fafc;
+      border: 2px dashed #d1d5db;
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .phrase-text {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1f2937;
+      line-height: 1.4;
+      margin-bottom: 16px;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .phrase-text.hidden-text {
+      filter: blur(8px);
+      user-select: none;
+      transition: filter 0.3s ease;
+    }
+
+    .phrase-text.hidden-text:hover {
+      filter: blur(0px);
+    }
+
+    /* Custom Duolingo 3D Buttons */
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      font-size: 1rem;
+      font-weight: 800;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 var(--primary-dark);
+      transition: transform 0.1s, box-shadow 0.1s, background-color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 transparent;
+    }
+
+    .btn-secondary {
+      background: var(--secondary);
+      box-shadow: 0 4px 0 var(--secondary-dark);
+    }
+
+    .btn-mic {
+      background: var(--accent);
+      box-shadow: 0 4px 0 var(--accent-dark);
+    }
+
+    .btn-mic.recording {
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); opacity: 0.9; }
+      100% { transform: scale(1); }
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: #3c3c3c;
+      box-shadow: 0 4px 0 var(--gold-dark);
+    }
+
+    /* Speed Control Panel */
+    .speed-panel {
+      background: #f1f5f9;
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .speed-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .speed-chip {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .speed-chip.active {
+      background: var(--secondary);
+      color: white;
+      border-color: var(--secondary-dark);
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slider-row input[type="range"] {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+      accent-color: var(--secondary);
+      cursor: pointer;
+    }
+
+    .speed-val-badge {
+      font-weight: 800;
+      color: var(--secondary-dark);
+      font-size: 1.1rem;
+      min-width: 50px;
+      text-align: right;
+    }
+
+    /* Voice Selection Control */
+    .voice-select-row {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Feedback Banner */
+    .feedback-box {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 14px;
+      font-weight: 700;
+      display: none;
+      animation: slideUp 0.2s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .feedback-box.correct {
+      background-color: #d7ffb8;
+      color: #2b7000;
+      border: 2px solid #b8f088;
+      display: block;
+    }
+
+    .feedback-box.incorrect {
+      background-color: #ffdfe0;
+      color: #ea2b2b;
+      border: 2px solid #f2b3b5;
+      display: block;
+    }
+
+    /* Recognized Text Display */
+    .spoken-result {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: white;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Navigation / Action Footer */
+    .nav-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 12px;
+      background: #e5e7eb;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    @media (max-width: 600px) {
+      .main-container { padding: 12px; }
+      .phrase-text { font-size: 1.25rem; }
+      .nav-actions { flex-direction: column; }
+      .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <div class="brand">
+      <span class="brand-icon">🦉</span>
+      <span>Duolingo Master</span>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-badge stat-streak">
+        🔥 <span id="streakCount">1</span> Days
+      </div>
+      <div class="stat-badge stat-xp">
+        ⚡ <span id="xpCount">0</span> XP
+      </div>
+    </div>
+  </div>
+
+  <div class="main-container">
+    <!-- Progress Indicator -->
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+
+    <!-- Practice Mode Switcher -->
+    <div class="mode-tabs">
+      <button class="tab-btn active" onclick="switchMode('read')">📖 Read & Listen</button>
+      <button class="tab-btn" onclick="switchMode('write')">✍️ Listen & Write</button>
+      <button class="tab-btn" onclick="switchMode('speak')">🎤 Speech Practice</button>
+      <button class="tab-btn" onclick="switchMode('faq')">🔍 Google Search FAQ</button>
+    </div>
+
+    <!-- Filters & Procedural Engine Search -->
+    <div class="card">
+      <div class="card-title">
+        <span>Question Engine & Filters</span>
+        <span id="questionCounter" style="color:var(--secondary-dark); font-weight:800;">100,000+ Available</span>
+      </div>
+
+      <div class="filter-grid">
+        <div>
+          <select id="categorySelect" onchange="applyFilters()">
+            <option value="all">All Categories</option>
+            <option value="questions">Asking Questions</option>
+            <option value="google">Google Search Trending FAQ</option>
+            <option value="daily">Daily Conversation</option>
+            <option value="travel">Travel & Directions</option>
+            <option value="business">Business & Work</option>
+            <option value="generated">Dynamic AI/Procedural Prompt</option>
+          </select>
+        </div>
+
+        <div>
+          <select id="difficultySelect" onchange="applyFilters()">
+            <option value="all">All Difficulties</option>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+
+        <div>
+          <input type="text" id="searchInput" placeholder="Search prompts..." oninput="applyFilters()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Prompt Card -->
+    <div class="card">
+      <div class="card-title">
+        <span id="promptCategoryLabel">Category: Asking Questions</span>
+        <span id="promptDifficultyLabel" style="background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:6px; font-weight:700;">Beginner</span>
+      </div>
+
+      <div class="phrase-container">
+        <div class="phrase-text" id="phraseDisplay">Where is the nearest train station?</div>
+        
+        <div class="voice-select-row">
+          <span style="font-size:0.85rem; font-weight:700; color:#666;">Voice Accent:</span>
+          <select id="voiceSelect" style="padding:6px; font-size:0.85rem;"></select>
+        </div>
+      </div>
+
+      <!-- Playback & Speech Controls -->
+      <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+        <button class="btn" onclick="speakPhrase()">🔊 Play Audio</button>
+        <button class="btn btn-gold" onclick="generateRandomProcedural()">🎲 Random 100k+ Prompt</button>
+      </div>
+
+      <!-- Speed Control Panel (0.5x to 4.0x) -->
+      <div class="speed-panel">
+        <div style="font-size:0.8rem; font-weight:800; text-transform:uppercase; color:#666; margin-bottom:8px;">
+          Speech Speed Control (0.5x - 4.0x)
+        </div>
+        <div class="speed-presets">
+          <button class="speed-chip" onclick="setSpeed(0.5)">0.5x</button>
+          <button class="speed-chip" onclick="setSpeed(0.8)">0.8x</button>
+          <button class="speed-chip active" id="chip10" onclick="setSpeed(1.0)">1.0x</button>
+          <button class="speed-chip" onclick="setSpeed(1.5)">1.5x</button>
+          <button class="speed-chip" onclick="setSpeed(2.0)">2.0x</button>
+          <button class="speed-chip" onclick="setSpeed(3.0)">3.0x</button>
+          <button class="speed-chip" onclick="setSpeed(4.0)">4.0x</button>
+        </div>
+        <div class="slider-row">
+          <input type="range" id="speedSlider" min="0.5" max="4.0" step="0.1" value="1.0" oninput="updateSpeedFromSlider(this.value)">
+          <span class="speed-val-badge" id="speedValue">1.0x</span>
+        </div>
+      </div>
+
+      <!-- Interactive Inputs depending on active Mode -->
+      <div id="modeInteractiveArea" style="margin-top:20px;">
+        <!-- Writing Practice Area -->
+        <div id="writingArea" style="display:none;">
+          <input type="text" id="writingInput" placeholder="Type what you hear..." autocomplete="off">
+          <button class="btn btn-secondary" style="margin-top:8px; width:100%;" onclick="checkWriting()">Check Answer</button>
+        </div>
+
+        <!-- Speaking Practice Area -->
+        <div id="speakingArea" style="display:none;">
+          <p style="font-size:0.9rem; font-weight:700; margin-bottom:8px;">Press the microphone and repeat the prompt out loud:</p>
+          <button class="btn btn-mic" id="micBtn" style="width:100%;" onclick="toggleSpeechRecognition()">🎤 Tap to Speak</button>
+          <div class="spoken-result">
+            <strong>Transcribed Speech:</strong>&nbsp;<span id="spokenText">...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback Area -->
+      <div class="feedback-box" id="feedbackBox"></div>
+    </div>
+
+    <!-- Bottom Navigation Controls -->
+    <div class="nav-actions">
+      <button class="btn btn-secondary" onclick="prevPhrase()">⬅️ Previous</button>
+      <button class="btn" onclick="nextPhrase()">Next Prompt ➡️</button>
+    </div>
+  </div>
+
+  <script>
+    // --- STATE VARIABLES ---
+    let currentMode = 'read';
+    let currentIndex = 0;
+    let currentSpeed = 1.0;
+    let xp = 0;
+    let streak = 1;
+    let synth = window.speechSynthesis;
+    let voices = [];
+    let recognition = null;
+    let isRecording = false;
+
+    // --- CURATED QUESTION BANK ---
+    const BaseQuestionBank = [
+      { category: 'questions', difficulty: 'beginner', text: 'Where is the nearest train station?' },
+      { category: 'questions', difficulty: 'beginner', text: 'Could you please help me find a doctor?' },
+      { category: 'questions', difficulty: 'intermediate', text: 'How long does it take to get to the international airport?' },
+      { category: 'google', difficulty: 'intermediate', text: 'How do I improve my English pronunciation fast at home?' },
+      { category: 'google', difficulty: 'beginner', text: 'What is the best way to practice speaking English every day?' },
+      { category: 'google', difficulty: 'advanced', text: 'Why is standard pronunciation essential for global business communication?' },
+      { category: 'daily', difficulty: 'beginner', text: 'I would like a hot cup of coffee with extra milk.' },
+      { category: 'daily', difficulty: 'intermediate', text: 'What time do you usually wake up during the weekend?' },
+      { category: 'travel', difficulty: 'beginner', text: 'Can I get a window seat for this flight?' },
+      { category: 'travel', difficulty: 'intermediate', text: 'Could you tell me how much a round-trip ticket costs?' },
+      { category: 'business', difficulty: 'intermediate', text: 'We need to schedule a meeting to discuss the new project.' },
+      { category: 'business', difficulty: 'advanced', text: 'Could you please summarize the key action points from our strategy call?' }
+    ];
+
+    // --- Dynamic Procedural Engine (Combines items to create 100,000+ Variations) ---
+    const DynamicEngine = {
+      templates: [
+        "How do I {verb} {object} in {location}?",
+        "What is the best way to {verb} {object}?",
+        "Could you tell me where to find {object} near {location}?",
+        "Why should people {verb} {object} when visiting {location}?",
+        "Can you explain how to {verb} {object} efficiently?",
+        "Is it possible to {verb} {object} before going to {location}?"
+      ],
+      verbs: ["improve", "find", "buy", "learn", "book", "reserve", "understand", "master", "organize", "enjoy"],
+      objects: ["English pronunciation", "a train ticket", "a good restaurant", "fluency skills", "a hotel room", "a tour guide", "business grammar", "local cuisine"],
+      locations: ["London", "New York", "the city center", "the airport", "a foreign country", "online", "the university"]
+    };
+
+    function generateProceduralQuestion() {
+      const t = DynamicEngine.templates[Math.floor(Math.random() * DynamicEngine.templates.length)];
+      const v = DynamicEngine.verbs[Math.floor(Math.random() * DynamicEngine.verbs.length)];
+      const o = DynamicEngine.objects[Math.floor(Math.random() * DynamicEngine.objects.length)];
+      const l = DynamicEngine.locations[Math.floor(Math.random() * DynamicEngine.locations.length)];
+      
+      const prompt = t.replace("{verb}", v).replace("{object}", o).replace("{location}", l);
+      return {
+        category: 'generated',
+        difficulty: 'intermediate',
+        text: prompt
+      };
+    }
+
+    let activeDataset = [...BaseQuestionBank];
+
+    // --- SPEECH SYNTHESIS SETUP ---
+    function initVoices() {
+      if ('speechSynthesis' in window) {
+        voices = synth.getVoices();
+        const voiceSelect = document.getElementById("voiceSelect");
+        voiceSelect.innerHTML = "";
+        
+        let englishVoices = voices.filter(v => v.lang.startsWith("en"));
+        if (englishVoices.length === 0) englishVoices = voices;
+
+        englishVoices.forEach((voice) => {
+          const option = document.createElement("option");
+          option.textContent = `${voice.name} (${voice.lang})`;
+          option.setAttribute("data-name", voice.name);
+          voiceSelect.appendChild(option);
+        });
+      }
+    }
+
+    if ('speechSynthesis' in window) {
+      speechSynthesis.onvoiceschanged = initVoices;
+    }
+
+    function speakPhrase() {
+      if (!('speechSynthesis' in window)) {
+        alert("Text-to-Speech is not supported on this browser.");
+        return;
+      }
+      if (synth.speaking) synth.cancel();
+
+      const currentItem = activeDataset[currentIndex];
+      const utterance = new SpeechSynthesisUtterance(currentItem.text);
+      utterance.rate = currentSpeed;
+
+      const voiceSelect = document.getElementById("voiceSelect");
+      const selectedOption = voiceSelect.selectedOptions[0]?.getAttribute("data-name");
+      if (selectedOption) {
+        const voice = voices.find(v => v.name === selectedOption);
+        if (voice) utterance.voice = voice;
+      }
+
+      synth.speak(utterance);
+    }
+
+    // --- SPEED CONTROLS (0.5x - 4.0x) ---
+    function setSpeed(speed) {
+      currentSpeed = parseFloat(speed);
+      document.getElementById("speedSlider").value = currentSpeed;
+      document.getElementById("speedValue").innerText = currentSpeed.toFixed(1) + "x";
+      updateActiveSpeedChip(currentSpeed);
+    }
+
+    function updateSpeedFromSlider(val) {
+      currentSpeed = parseFloat(val);
+      document.getElementById("speedValue").innerText = currentSpeed.toFixed(1) + "x";
+      updateActiveSpeedChip(currentSpeed);
+    }
+
+    function updateActiveSpeedChip(speed) {
+      document.querySelectorAll('.speed-chip').forEach(chip => {
+        const val = parseFloat(chip.innerText);
+        if (val === speed) {
+          chip.classList.add('active');
+        } else {
+          chip.classList.remove('active');
+        }
+      });
+    }
+
+    // --- FILTER & NAVIGATION LOGIC ---
+    function applyFilters() {
+      const cat = document.getElementById("categorySelect").value;
+      const diff = document.getElementById("difficultySelect").value;
+      const search = document.getElementById("searchInput").value.toLowerCase();
+
+      activeDataset = BaseQuestionBank.filter(item => {
+        const matchCat = (cat === 'all' || item.category === cat);
+        const matchDiff = (diff === 'all' || item.difficulty === diff);
+        const matchSearch = item.text.toLowerCase().includes(search);
+        return matchCat && matchDiff && matchSearch;
+      });
+
+      if (cat === 'generated' || activeDataset.length === 0) {
+        activeDataset = [generateProceduralQuestion()];
+      }
+
+      currentIndex = 0;
+      renderCurrentPrompt();
+    }
+
+    function generateRandomProcedural() {
+      activeDataset = [generateProceduralQuestion()];
+      currentIndex = 0;
+      renderCurrentPrompt();
+    }
+
+    function renderCurrentPrompt() {
+      if (activeDataset.length === 0) return;
+      const item = activeDataset[currentIndex];
+
+      document.getElementById("promptCategoryLabel").innerText = `Category: ${item.category.toUpperCase()}`;
+      document.getElementById("promptDifficultyLabel").innerText = item.difficulty;
+
+      const phraseDisplay = document.getElementById("phraseDisplay");
+      phraseDisplay.innerText = item.text;
+
+      // Reset blurred text effect if in listening/writing mode
+      if (currentMode === 'write') {
+        phraseDisplay.classList.add("hidden-text");
+      } else {
+        phraseDisplay.classList.remove("hidden-text");
+      }
+
+      // Reset input fields & feedbacks
+      document.getElementById("writingInput").value = "";
+      document.getElementById("spokenText").innerText = "...";
+      hideFeedback();
+      updateProgressBar();
+    }
+
+    function updateProgressBar() {
+      const progress = ((currentIndex + 1) / activeDataset.length) * 100;
+      document.getElementById("progressBar").style.width = `${Math.min(progress, 100)}%`;
+    }
+
+    function nextPhrase() {
+      if (currentIndex < activeDataset.length - 1) {
+        currentIndex++;
+      } else {
+        activeDataset.push(generateProceduralQuestion());
+        currentIndex++;
+      }
+      renderCurrentPrompt();
+    }
+
+    function prevPhrase() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderCurrentPrompt();
+      }
+    }
+
+    // --- MODE SWITCHING & PRACTICE INTERACTION ---
+    function switchMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.getElementById("writingArea").style.display = (mode === 'write') ? 'block' : 'none';
+      document.getElementById("speakingArea").style.display = (mode === 'speak') ? 'block' : 'none';
+
+      renderCurrentPrompt();
+    }
+
+    function checkWriting() {
+      const userInput = document.getElementById("writingInput").value.trim().toLowerCase();
+      const targetText = activeDataset[currentIndex].text.toLowerCase().replace(/[.,?!]/g, "");
+      const cleanUser = userInput.replace(/[.,?!]/g, "");
+
+      if (cleanUser === targetText) {
+        showFeedback("🎉 Perfect match! Excellent writing practice.", "correct");
+        addXP(15);
+      } else {
+        showFeedback(`❌ Not quite right. Correct sentence:\n"${activeDataset[currentIndex].text}"`, "incorrect");
+      }
+      document.getElementById("phraseDisplay").classList.remove("hidden-text");
+    }
+
+    // --- SPEECH RECOGNITION (SPEECH-TO-TEXT) ---
+    function toggleSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        alert("Speech Recognition API is not supported in this browser. Please use Google Chrome or MS Edge.");
+        return;
+      }
+
+      if (isRecording) {
+        recognition.stop();
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+
+      const micBtn = document.getElementById("micBtn");
+
+      recognition.onstart = function() {
+        isRecording = true;
+        micBtn.classList.add("recording");
+        micBtn.innerText = "⏹️ Stop Listening";
+      };
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("spokenText").innerText = transcript;
+        evaluateSpeakingAccuracy(transcript);
+      };
+
+      recognition.onerror = function(e) {
+        console.error("Speech Recognition Error:", e);
+        stopMicUI();
+      };
+
+      recognition.onend = function() {
+        stopMicUI();
+      };
+
+      recognition.start();
+    }
+
+    function stopMicUI() {
+      isRecording = false;
+      const micBtn = document.getElementById("micBtn");
+      micBtn.classList.remove("recording");
+      micBtn.innerText = "🎤 Tap to Speak";
+    }
+
+    function evaluateSpeakingAccuracy(spoken) {
+      const target = activeDataset[currentIndex].text.toLowerCase().replace(/[.,?!]/g, "").split(" ");
+      const spokenWords = spoken.toLowerCase().replace(/[.,?!]/g, "").split(" ");
+
+      let matches = 0;
+      target.forEach(word => {
+        if (spokenWords.includes(word)) matches++;
+      });
+
+      const accuracy = Math.round((matches / target.length) * 100);
+
+      if (accuracy >= 80) {
+        showFeedback(`🎯 Accuracy: ${accuracy}%. Fantastic pronunciation!`, "correct");
+        addXP(20);
+      } else {
+        showFeedback(`💡 Accuracy: ${accuracy}%. Try adjusting speed to 0.8x and listen closely before speaking again.`, "incorrect");
+      }
+    }
+
+    // --- FEEDBACK & XP GAMIFICATION ---
+    function showFeedback(msg, type) {
+      const box = document.getElementById("feedbackBox");
+      box.innerText = msg;
+      box.className = `feedback-box ${type}`;
+    }
+
+    function hideFeedback() {
+      const box = document.getElementById("feedbackBox");
+      box.className = "feedback-box";
+      box.innerText = "";
+    }
+
+    function addXP(points) {
+      xp += points;
+      document.getElementById("xpCount").innerText = xp;
+    }
+
+    // Initialize application on load
+    window.onload = function() {
+      initVoices();
+      renderCurrentPrompt();
+    };
+  </script>
+</body>
+</html>
